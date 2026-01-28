@@ -1,9 +1,41 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+  // Estados para pedidos
+  const [cliente, setCliente] = useState('');
+  const [produto, setProduto] = useState('');
+  const [quantidade, setQuantidade] = useState(1);
+  const [pedidos, setPedidos] = useState([]);
+
+  // Carregar pedidos existentes
   useEffect(() => {
-    // Carrega o script.js da pasta public
+    fetch('/api/pedidos')
+      .then(res => res.json())
+      .then(data => setPedidos(data));
+  }, []);
+
+  // Enviar novo pedido
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const resposta = await fetch('/api/pedidos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cliente, produto, quantidade })
+    });
+
+    if (resposta.ok) {
+      alert('Pedido criado com sucesso!');
+      setCliente('');
+      setProduto('');
+      setQuantidade(1);
+      const novosPedidos = await fetch('/api/pedidos').then(res => res.json());
+      setPedidos(novosPedidos);
+    }
+  };
+
+  // Carregar script.js para carrossel e botão voltar ao topo
+  useEffect(() => {
     const script = document.createElement('script');
     script.src = '/script.js';
     document.body.appendChild(script);
@@ -11,7 +43,6 @@ export default function Home() {
 
   return (
     <main>
-      {/* Header */}
       <header>
         <div className="logo">Ana Paula Bordados</div>
         <nav>
@@ -24,7 +55,6 @@ export default function Home() {
         </nav>
       </header>
 
-      {/* Hero Section */}
       <section className="hero">
         <h1>Arte em Cada Ponto</h1>
         <p>Descubra o mundo encantador dos bordados personalizados com carinho e criatividade.</p>
@@ -34,7 +64,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Serviços */}
       <section className="section-content">
         <h2>Serviços</h2>
         <div className="servicos-grid">
@@ -44,7 +73,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Galeria */}
       <section className="section-content">
         <h2>Galeria</h2>
         <div className="gallery-carousel">
@@ -61,22 +89,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Planos */}
-      <section className="section-content">
-        <h2>Planos</h2>
-        <div className="planos">
-          <div className="plano">
-            <h3>Básico</h3>
-            <p>R$ 99/mês</p>
-          </div>
-          <div className="plano">
-            <h3>Premium</h3>
-            <p>R$ 199/mês</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Cursos */}
       <section className="section-content">
         <h2>Cursos</h2>
         <div className="cursos-grid">
@@ -93,26 +105,44 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Contato */}
       <section className="section-content">
-        <h2>Contato</h2>
-        <div className="contato-info">
-          <p>Email: <a href="mailto:contato@bordados.com">contato@bordados.com</a></p>
-          <p>WhatsApp: <a href="#">(71) 99999-9999</a></p>
-        </div>
-        <form id="contactForm">
-          <input type="text" name="nome" placeholder="Seu nome" required />
-          <input type="email" name="email" placeholder="Seu email" required />
-          <textarea name="mensagem" placeholder="Sua mensagem" required></textarea>
-          <button type="submit">Enviar</button>
+        <h2>Pedidos</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Nome do cliente"
+            value={cliente}
+            onChange={(e) => setCliente(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Produto"
+            value={produto}
+            onChange={(e) => setProduto(e.target.value)}
+            required
+          />
+          <input
+            type="number"
+            placeholder="Quantidade"
+            value={quantidade}
+            onChange={(e) => setQuantidade(Number(e.target.value))}
+            required
+          />
+          <button type="submit">Salvar Pedido</button>
         </form>
-        <div id="formMessage"></div>
+
+        <ul>
+          {pedidos.map((p, i) => (
+            <li key={i}>
+              {p.cliente} pediu {p.quantidade}x {p.produto}
+            </li>
+          ))}
+        </ul>
       </section>
 
-      {/* Botão voltar ao topo */}
       <button id="backToTop">↑</button>
 
-      {/* Footer */}
       <footer>
         <p>&copy; 2026 Ana Paula Bordados</p>
       </footer>
